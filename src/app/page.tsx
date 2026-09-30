@@ -6,6 +6,7 @@ import { BookmarkRow } from '@/components/BookmarkRow'
 import { BookmarkDialog } from '@/components/BookmarkDialog'
 import { UploadDialog } from '@/components/UploadDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { CategoryManager } from '@/components/CategoryManager'
 
 type CategoryWithCount = Category & { count: number }
 
@@ -20,6 +21,7 @@ export default function Home() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Bookmark | null>(null)
   const [deleting, setDeleting] = useState<Bookmark | null>(null)
+  const [catManagerOpen, setCatManagerOpen] = useState(false)
 
   // 搜索 300ms 防抖
   useEffect(() => {
@@ -84,10 +86,10 @@ export default function Home() {
         </button>
         <button
           type="button"
-          disabled
-          title="即将支持"
+          onClick={() => setCatManagerOpen(true)}
           aria-label="分类管理"
-          className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm opacity-50"
+          title="分类管理"
+          className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm hover:border-blue-300"
         >
           ⚙
         </button>
@@ -183,6 +185,13 @@ export default function Home() {
           setDeleting(null)
           refresh()
         }}
+      />
+
+      <CategoryManager
+        open={catManagerOpen}
+        categories={categories}
+        onClose={() => setCatManagerOpen(false)}
+        onChanged={refresh}
       />
     </main>
   )
