@@ -86,8 +86,8 @@ CREATE TABLE bookmarks (
   file_name   TEXT,                      -- file 类型：磁盘文件名 {slug}.html
   slug        TEXT UNIQUE,               -- file 类型：访问路径 /p/{slug}
   category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
-  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+  updated_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
 );
 
 CREATE INDEX idx_bookmarks_category ON bookmarks(category_id);
