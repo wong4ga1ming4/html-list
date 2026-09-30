@@ -50,6 +50,15 @@ describe('/p/[slug] 页面托管', () => {
     expect((await getPage(pageReq('x'), params('a%2F..%2Fevil'))).status).toBe(404)
   })
 
+  it('连续 404 的响应体不为空（共享 Response 会丢 body）', async () => {
+    const first = await getPage(pageReq('nosuch999'), params('nosuch999'))
+    const second = await getPage(pageReq('nosuch999'), params('nosuch999'))
+    expect(first.status).toBe(404)
+    expect(second.status).toBe(404)
+    expect(await second.text()).toBe('Not Found')
+    expect(await first.text()).toBe('Not Found')
+  })
+
   it('库中被篡改的 file_name 不能越出 files 目录', async () => {
     getDb()
       .prepare(

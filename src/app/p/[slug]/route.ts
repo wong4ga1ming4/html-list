@@ -5,7 +5,10 @@ import { getDb } from '@/lib/db'
 
 type Params = { params: Promise<{ slug: string }> }
 
-const NOT_FOUND = new Response('Not Found', { status: 404 })
+/** Response 的 body 是一次性流，不能模块级共享：每次 404 都要新造一个 */
+function notFound() {
+  return new Response('Not Found', { status: 404 })
+}
 
 /** file_name 只可能来自 saveHtmlFile 生成；此正则为纵深防御，杜绝路径穿越 */
 const SAFE_FILE_NAME = /^[a-z0-9]{10}\.html$/
@@ -17,7 +20,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     .prepare("SELECT file_name FROM bookmarks WHERE slug = ? AND type = 'file'")
     .get(slug) as { file_name: string | null } | undefined
   if (!row?.file_name || !SAFE_FILE_NAME.test(row.file_name)) {
-    return NOT_FOUND
+    return notFound()
   }
 
   const dataDir = process.env.DATA_DIR || './data'
@@ -27,6 +30,6 @@ export async function GET(_req: NextRequest, { params }: Params) {
       headers: { 'content-type': 'text/html; charset=utf-8' },
     })
   } catch {
-    return NOT_FOUND
+    return notFound()
   }
 }
