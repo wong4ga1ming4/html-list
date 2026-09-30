@@ -109,7 +109,7 @@ CREATE INDEX idx_bookmarks_category ON bookmarks(category_id);
 | GET | `/api/bookmarks?q=&category=` | 列表。`q` 对 title/description/url 做 LIKE 模糊搜索；`category` 为分类 id 或 `uncategorized`；按 `created_at DESC` 排序 |
 | POST | `/api/bookmarks` | 创建链接型书签。Body：`{ title, url, description?, category_id? }` |
 | POST | `/api/bookmarks/upload` | multipart/form-data：`file`（.html）+ 可选 `title/description/category_id`。创建文件型书签 |
-| PATCH | `/api/bookmarks/[id]` | 编辑 `title/description/category_id`（部分更新） |
+| PATCH | `/api/bookmarks/[id]` | 编辑 `title/description/url/category_id`（部分更新；url 仅链接型，需 http/https） |
 | DELETE | `/api/bookmarks/[id]` | 删除。文件型同时删除 `DATA_DIR/files/{file_name}` |
 | GET | `/api/categories` | 列表（含每个分类的书签计数），按 sort_order |
 | POST | `/api/categories` | 创建。Body：`{ name }` |
@@ -167,9 +167,9 @@ CREATE INDEX idx_bookmarks_category ON bookmarks(category_id);
 - **Dockerfile（多阶段）**：
   1. `deps`：`node:22-bookworm-slim`（better-sqlite3 v13 要求 Node ≥ 22），装 python3/make/g++，删除 better-sqlite3 预编译二进制后用 node-gyp 源码编译（预编译在 arm64/standalone 场景不可靠），断言编译产物存在
   2. `builder`：`npm ci` + `next build`（`output: 'standalone'`）
-  3. `runner`：`node:22-bookworm-slim`，仅拷贝 standalone 产物 + `.next/static` + `public`，删除被追踪带回的 prebuilds、显式拷入编译出的 better_sqlite3.node（standalone 输出追踪会漏掉它），非 root 用户运行
+  3. `runner`：`node:22-bookworm-slim`，仅拷贝 standalone 产物 + `.next/static` + `public`，删除被追踪带回的 prebuilds、显式拷入编译出的 better_sqlite3.node（standalone 输出追踪会漏掉它），显式 `HOSTNAME=0.0.0.0`（Next standalone 以 HOSTNAME 为监听地址，Docker 默认将其设为容器 ID），非 root 用户运行
 - **npm 源**：`ARG NPM_REGISTRY` 默认 `https://registry.npmmirror.com`（受限网络），可用 `--build-arg` 覆盖为官方源
-- **docker-compose.yml**：端口映射、`./data:/data` volume、healthcheck（`/api/health`）
+- **docker-compose.yml**：端口映射、`./data:/data` volume、healthcheck（`node -e "fetch(...)"` 探测 `/api/health`——bookworm-slim 无 wget）；Linux 首次部署需先 `mkdir -p data && chown -R 999:999 data`（容器以 uid 999 运行）
 - **环境变量**：`PORT=3000`、`DATA_DIR=/data`、`MAX_UPLOAD_MB=20`
 - **.dockerignore**：node_modules、.next、data、.git、.claude、docs
 
