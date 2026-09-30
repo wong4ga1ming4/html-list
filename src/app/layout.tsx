@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'HTML List',
-  description: '书签式 HTML 门户站',
+  title: '一页纸',
+  description: '一页纸 — 书签式 HTML 门户站',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

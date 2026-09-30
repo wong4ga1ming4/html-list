@@ -64,7 +64,7 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <header className="mb-8 flex items-baseline justify-between">
-        <h1 className="text-lg font-semibold tracking-tight text-zinc-950">HTML List</h1>
+        <h1 className="text-lg font-semibold tracking-tight text-zinc-950">一页纸</h1>
         <p className="text-xs text-zinc-400">{bookmarks.length} 条书签</p>
       </header>
 
