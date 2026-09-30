@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
+import { deleteHtmlFile } from '@/lib/files'
 import type { Bookmark } from '@/lib/types'
 
 const COLUMNS = 'id, type, title, description, url, slug, category_id, created_at, updated_at'
@@ -63,6 +64,13 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   const id = Number(raw)
   if (!Number.isInteger(id) || !findBookmark(id)) {
     return NextResponse.json({ error: '书签不存在' }, { status: 404 })
+  }
+  // file 类型：清理磁盘文件（文件已丢失也容忍，仍删记录）
+  const row = getDb()
+    .prepare('SELECT type, file_name FROM bookmarks WHERE id = ?')
+    .get(id) as { type: string; file_name: string | null }
+  if (row.type === 'file' && row.file_name) {
+    deleteHtmlFile(process.env.DATA_DIR || './data', row.file_name)
   }
   getDb().prepare('DELETE FROM bookmarks WHERE id = ?').run(id)
   return NextResponse.json({ ok: true })
