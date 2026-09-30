@@ -165,12 +165,13 @@ CREATE INDEX idx_bookmarks_category ON bookmarks(category_id);
 ## 8. Docker 部署
 
 - **Dockerfile（多阶段）**：
-  1. `deps`：`node:20-alpine`，装 python3/make/g++（编译 better-sqlite3）
+  1. `deps`：`node:22-bookworm-slim`（better-sqlite3 v13 要求 Node ≥ 22），装 python3/make/g++，删除 better-sqlite3 预编译二进制后用 node-gyp 源码编译（预编译在 arm64/standalone 场景不可靠），断言编译产物存在
   2. `builder`：`npm ci` + `next build`（`output: 'standalone'`）
-  3. `runner`：`node:20-alpine`，仅拷贝 standalone 产物 + `.next/static` + `public`，非 root 用户运行
+  3. `runner`：`node:22-bookworm-slim`，仅拷贝 standalone 产物 + `.next/static` + `public`，删除被追踪带回的 prebuilds、显式拷入编译出的 better_sqlite3.node（standalone 输出追踪会漏掉它），非 root 用户运行
+- **npm 源**：`ARG NPM_REGISTRY` 默认 `https://registry.npmmirror.com`（受限网络），可用 `--build-arg` 覆盖为官方源
 - **docker-compose.yml**：端口映射、`./data:/data` volume、healthcheck（`/api/health`）
 - **环境变量**：`PORT=3000`、`DATA_DIR=/data`、`MAX_UPLOAD_MB=20`
-- **.dockerignore**：node_modules、.next、data、.git
+- **.dockerignore**：node_modules、.next、data、.git、.claude、docs
 
 ## 9. 测试策略
 
