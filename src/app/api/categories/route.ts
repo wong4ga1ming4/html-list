@@ -21,7 +21,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '分类名不能为空' }, { status: 400 })
   }
   try {
-    const info = getDb().prepare('INSERT INTO categories (name) VALUES (?)').run(name)
+    // sort_order 必须递增分配，否则全部默认 0 时"相邻互换"调序是 no-op
+    const info = getDb()
+      .prepare(
+        `INSERT INTO categories (name, sort_order)
+         VALUES (?, COALESCE((SELECT MAX(sort_order) FROM categories), -1) + 1)`
+      )
+      .run(name)
     const category = getDb()
       .prepare('SELECT * FROM categories WHERE id = ?')
       .get(info.lastInsertRowid) as Category

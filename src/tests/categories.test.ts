@@ -65,6 +65,27 @@ describe('分类 API', () => {
     ).toBe(404)
   })
 
+  it('调序：相邻互换 sort_order 后列表顺序真的改变', async () => {
+    const mk = async (name: string) =>
+      ((await (await POST(jsonReq('POST', BASE, { name }))).json()).category) as {
+        id: number
+        sort_order: number
+      }
+    const a = await mk('调序A')
+    const b = await mk('调序B')
+    const c = await mk('调序C')
+
+    // UI 的上移 = 相邻两条互换 sort_order（两次 PATCH）
+    await PATCH(jsonReq('PATCH', `${BASE}/${b.id}`, { sort_order: a.sort_order }), params(b.id))
+    await PATCH(jsonReq('PATCH', `${BASE}/${a.id}`, { sort_order: b.sort_order }), params(a.id))
+
+    const { categories } = await (await GET()).json()
+    const names = (categories as { name: string }[])
+      .filter((x) => ['调序A', '调序B', '调序C'].includes(x.name))
+      .map((x) => x.name)
+    expect(names).toEqual(['调序B', '调序A', '调序C'])
+  })
+
   it('DELETE 分类后书签归为未分类', async () => {
     const created = await POST(jsonReq('POST', BASE, { name: '临时分类' }))
     const id = (await created.json()).category.id
