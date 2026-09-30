@@ -127,6 +127,26 @@ describe('链接书签 API', () => {
     ).toBe(404)
   })
 
+  it('PATCH 可修改 URL；非法 URL 400', async () => {
+    const { bookmark } = await createBookmark({ title: '改链接', url: 'https://old.example.com' })
+
+    const res = await PATCH(
+      jsonReq('PATCH', `${BASE}/${bookmark.id}`, { url: 'https://new.example.com/x' }),
+      params(bookmark.id)
+    )
+    expect(res.status).toBe(200)
+    expect((await res.json()).bookmark.url).toBe('https://new.example.com/x')
+
+    expect(
+      (
+        await PATCH(
+          jsonReq('PATCH', `${BASE}/${bookmark.id}`, { url: 'ftp://a.com' }),
+          params(bookmark.id)
+        )
+      ).status
+    ).toBe(400)
+  })
+
   it('DELETE 后 GET 列表不再包含', async () => {
     const { bookmark } = await createBookmark({ title: '待删除', url: 'https://a.com/del' })
 

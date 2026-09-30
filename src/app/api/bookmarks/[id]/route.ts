@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 
   const body = (await req.json().catch(() => null)) as
-    | { title?: unknown; description?: unknown; category_id?: unknown }
+    | { title?: unknown; description?: unknown; url?: unknown; category_id?: unknown }
     | null
 
   const title = body?.title !== undefined ? String(body.title).trim() : existing.title
@@ -34,6 +34,18 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
   const description =
     body?.description !== undefined ? String(body.description).trim() : existing.description
+
+  let url = existing.url
+  if (body?.url !== undefined) {
+    if (existing.type !== 'link') {
+      return NextResponse.json({ error: '文件型书签不支持修改 URL' }, { status: 400 })
+    }
+    const rawUrl = String(body.url).trim()
+    if (!/^https?:\/\//.test(rawUrl)) {
+      return NextResponse.json({ error: 'URL 必须以 http:// 或 https:// 开头' }, { status: 400 })
+    }
+    url = rawUrl
+  }
 
   let categoryId: number | null
   if (body?.category_id === undefined) {
@@ -52,10 +64,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   getDb()
     .prepare(
-      `UPDATE bookmarks SET title = ?, description = ?, category_id = ?,
+      `UPDATE bookmarks SET title = ?, description = ?, url = ?, category_id = ?,
        updated_at = strftime('%Y-%m-%dT%H:%M:%SZ','now') WHERE id = ?`
     )
-    .run(title, description, categoryId, id)
+    .run(title, description, url, categoryId, id)
   return NextResponse.json({ bookmark: findBookmark(id) })
 }
 

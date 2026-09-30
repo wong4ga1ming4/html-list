@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/bookmarks/upload/route'
-import { DELETE } from '@/app/api/bookmarks/[id]/route'
+import { PATCH, DELETE } from '@/app/api/bookmarks/[id]/route'
 import { extractTitle } from '@/lib/title'
-import { tempDataDir, cleanupDataDir } from '@/tests/helpers'
+import { tempDataDir, cleanupDataDir, jsonReq } from '@/tests/helpers'
 import { existsSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -55,6 +55,17 @@ describe('上传 API', () => {
   it('显式空白标题 400', async () => {
     const res = await POST(uploadReq('a.html', '<title>t</title>', { title: '   ' }))
     expect(res.status).toBe(400)
+  })
+
+  it('PATCH url 对文件型书签 400', async () => {
+    const up = await POST(uploadReq('f.html', '<title>文件书签</title>'))
+    const { id } = (await up.json()).bookmark
+    const res = await PATCH(
+      jsonReq('PATCH', `http://localhost/api/bookmarks/${id}`, { url: 'https://x.com' }),
+      params(id)
+    )
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe('文件型书签不支持修改 URL')
   })
 
   it('非 .html 后缀 400', async () => {
