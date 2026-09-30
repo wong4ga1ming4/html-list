@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Bookmark, Category } from '@/lib/types'
 import { BookmarkRow } from '@/components/BookmarkRow'
+import { BookmarkDialog } from '@/components/BookmarkDialog'
+import { UploadDialog } from '@/components/UploadDialog'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 type CategoryWithCount = Category & { count: number }
 
@@ -12,6 +15,11 @@ export default function Home() {
   const [q, setQ] = useState('')
   const [debouncedQ, setDebouncedQ] = useState('')
   const [category, setCategory] = useState('')
+
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<Bookmark | null>(null)
+  const [deleting, setDeleting] = useState<Bookmark | null>(null)
 
   // 搜索 300ms 防抖
   useEffect(() => {
@@ -62,17 +70,15 @@ export default function Home() {
         />
         <button
           type="button"
-          disabled
-          title="即将支持"
-          className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white opacity-50"
+          onClick={() => setLinkDialogOpen(true)}
+          className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
         >
           + 添加链接
         </button>
         <button
           type="button"
-          disabled
-          title="即将支持"
-          className="rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-medium text-white opacity-50"
+          onClick={() => setUploadDialogOpen(true)}
+          className="rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-black"
         >
           ⬆ 上传 HTML
         </button>
@@ -131,13 +137,53 @@ export default function Home() {
               <BookmarkRow
                 bookmark={b}
                 categoryName={b.category_id ? (categoryNameById.get(b.category_id) ?? null) : null}
-                onEdit={() => {}}
-                onDelete={() => {}}
+                onEdit={(bm) => setEditing(bm)}
+                onDelete={(bm) => setDeleting(bm)}
               />
             </li>
           ))}
         </ul>
       )}
+
+      <BookmarkDialog
+        key={editing ? `edit-${editing.id}` : 'new-link'}
+        open={linkDialogOpen || !!editing}
+        initial={editing}
+        categories={categories}
+        onClose={() => {
+          setLinkDialogOpen(false)
+          setEditing(null)
+        }}
+        onSaved={() => {
+          setLinkDialogOpen(false)
+          setEditing(null)
+          refresh()
+        }}
+      />
+
+      <UploadDialog
+        open={uploadDialogOpen}
+        categories={categories}
+        onClose={() => setUploadDialogOpen(false)}
+        onSaved={() => {
+          setUploadDialogOpen(false)
+          refresh()
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!deleting}
+        message={`确定删除「${deleting?.title ?? ''}」吗？${
+          deleting?.type === 'file' ? '磁盘上的 HTML 文件也会一并删除。' : ''
+        }`}
+        onClose={() => setDeleting(null)}
+        onConfirm={async () => {
+          if (!deleting) return
+          await fetch(`/api/bookmarks/${deleting.id}`, { method: 'DELETE' })
+          setDeleting(null)
+          refresh()
+        }}
+      />
     </main>
   )
 }
