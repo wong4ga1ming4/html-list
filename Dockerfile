@@ -3,10 +3,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 # 受限网络默认走 npmmirror，可用 --build-arg NPM_REGISTRY=https://registry.npmjs.org 覆盖
 ARG NPM_REGISTRY=https://registry.npmmirror.com
-# 优先用 better-sqlite3 官方预编译（x86_64 可用），并在构建期验证真的能打开数据库；
-# 段错误/缺失（如 arm64 预编译）才回退源码编译——apt 只装在回退分支，
-# 避免连不上 Debian 源的服务器卡死在 apt-get
-RUN npm ci --registry=$NPM_REGISTRY \
+# 优先用 better-sqlite3 官方预编译（tarball 自带全平台 .node，含 linux-x64），
+# --ignore-scripts 跳过安装脚本（它总想 node-gyp 源码编译，需要 python 工具链）；
+# 构建期验证二进制真能打开数据库，不可用（如 arm64 预编译段错误）才回退源码编译
+RUN npm ci --registry=$NPM_REGISTRY --ignore-scripts \
   && cd node_modules/better-sqlite3 \
   && if node -e "new (require('better-sqlite3'))(':memory:')" 2>/dev/null; then \
        echo "better-sqlite3: using bundled prebuild"; \
