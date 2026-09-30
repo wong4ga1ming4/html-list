@@ -2,6 +2,7 @@
 
 import { FileText, Link2, Pencil, Trash2 } from 'lucide-react'
 import type { Bookmark } from '@/lib/types'
+import { BASE_PATH } from '@/lib/base-path'
 
 interface BookmarkRowProps {
   bookmark: Bookmark
@@ -11,7 +12,7 @@ interface BookmarkRowProps {
 }
 
 function href(b: Bookmark): string {
-  return b.type === 'file' ? `/p/${b.slug}` : (b.url ?? '#')
+  return b.type === 'file' ? `${BASE_PATH}/p/${b.slug}` : (b.url ?? '#')
 }
 
 function sourceLabel(b: Bookmark): string {

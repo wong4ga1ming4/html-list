@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react'
 import type { Category } from '@/lib/types'
+import { BASE_PATH } from '@/lib/base-path'
 import { Dialog } from './Dialog'
 import { ConfirmDialog } from './ConfirmDialog'
 import { Button } from './ui/Button'
@@ -16,7 +17,7 @@ interface CategoryManagerProps {
 }
 
 async function patchCategory(id: number, body: Record<string, unknown>) {
-  const res = await fetch(`/api/categories/${id}`, {
+  const res = await fetch(`${BASE_PATH}/api/categories/${id}`, {
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
@@ -38,7 +39,7 @@ export function CategoryManager({ open, categories, onClose, onChanged }: Catego
     e.preventDefault()
     if (!newName.trim()) return
     setError('')
-    const res = await fetch('/api/categories', {
+    const res = await fetch(`${BASE_PATH}/api/categories`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ name: newName.trim() }),
@@ -74,7 +75,7 @@ export function CategoryManager({ open, categories, onClose, onChanged }: Catego
 
   async function handleConfirmDelete() {
     if (!deleting) return
-    await fetch(`/api/categories/${deleting.id}`, { method: 'DELETE' })
+    await fetch(`${BASE_PATH}/api/categories/${deleting.id}`, { method: 'DELETE' })
     setDeleting(null)
     onChanged()
   }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Bookmark, Category } from '@/lib/types'
+import { BASE_PATH } from '@/lib/base-path'
 import { Dialog } from './Dialog'
 import { Button } from './ui/Button'
 import { Input, Label, Select } from './ui/Field'
@@ -40,7 +41,7 @@ export function BookmarkDialog({
     setError('')
     try {
       const res = isEdit
-        ? await fetch(`/api/bookmarks/${initial!.id}`, {
+        ? await fetch(`${BASE_PATH}/api/bookmarks/${initial!.id}`, {
             method: 'PATCH',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({
@@ -50,7 +51,7 @@ export function BookmarkDialog({
               category_id: categoryId ? Number(categoryId) : null,
             }),
           })
-        : await fetch('/api/bookmarks', {
+        : await fetch(`${BASE_PATH}/api/bookmarks`, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({

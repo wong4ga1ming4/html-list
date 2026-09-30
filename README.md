@@ -37,6 +37,25 @@ cp -r data /path/to/backup/
 | `PORT` | `3000` | 服务端口 |
 | `DATA_DIR` | `/data`（Docker）/ `./data`（本地开发） | 数据目录（数据库 + 文件） |
 | `MAX_UPLOAD_MB` | `20` | 上传文件大小上限（MB） |
+| `NEXT_PUBLIC_BASE_PATH` | 空 | **构建参数**。反代子路径部署时设为如 `/html`，全部页面/资源/API/托管页随之挂到该前缀下 |
+
+## 反向代理（子路径部署）
+
+挂在 nginx 的子路径（如 `http://your-host/html`）下时：
+
+1. 项目根建 `.env` 文件：`NEXT_PUBLIC_BASE_PATH=/html`
+2. `docker compose up -d --build` 重新构建
+3. nginx 配置（**不要**在 `proxy_pass` 末尾加 `/`，保留前缀原样透传）：
+
+```nginx
+location /html {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+不需要为 `/_next`、`/api`、`/p` 单独配 location——应用自己全部走 `/html` 前缀。
 
 ## 本地开发
 

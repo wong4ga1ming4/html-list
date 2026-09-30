@@ -1,6 +1,10 @@
 services:
   html-list:
-    build: .
+    build:
+      context: .
+      args:
+        # 反代子路径部署时设为如 /html（项目根建 .env 文件写入即可）
+        NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-}
     ports:
       - "3000:3000"
     volumes:
@@ -8,10 +12,12 @@ services:
     environment:
       - DATA_DIR=/data
       - MAX_UPLOAD_MB=20
+      # basePath 下 /api/health 实际在 ${NEXT_PUBLIC_BASE_PATH}/api/health
+      - HEALTH_PATH=${NEXT_PUBLIC_BASE_PATH:-}/api/health
     restart: unless-stopped
     healthcheck:
       # bookworm-slim 没有 wget；node 22 自带 fetch，零新增依赖
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000'+(process.env.HEALTH_PATH||'/api/health')).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3

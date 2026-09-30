@@ -23,6 +23,9 @@ RUN npm ci --registry=$NPM_REGISTRY --ignore-scripts \
   && echo "better-sqlite3: verified"
 
 FROM deps AS builder
+# 反代子路径（如 /html）构建时注入；留空 = 根路径部署
+ARG NEXT_PUBLIC_BASE_PATH=""
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 COPY . .
 RUN npm run build
 

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { FileUp } from 'lucide-react'
 import type { Category } from '@/lib/types'
 import { extractTitle } from '@/lib/title'
+import { BASE_PATH } from '@/lib/base-path'
 import { Dialog } from './Dialog'
 import { Button } from './ui/Button'
 import { Input, Label, Select } from './ui/Field'
@@ -51,7 +52,7 @@ export function UploadDialog({ open, categories, onClose, onSaved }: UploadDialo
       if (title.trim()) fd.append('title', title)
       if (description.trim()) fd.append('description', description)
       if (categoryId) fd.append('category_id', categoryId)
-      const res = await fetch('/api/bookmarks/upload', { method: 'POST', body: fd })
+      const res = await fetch(`${BASE_PATH}/api/bookmarks/upload`, { method: 'POST', body: fd })
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as { error?: string } | null
         setError(body?.error ?? '上传失败，请重试')

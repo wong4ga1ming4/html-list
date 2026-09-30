@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Plus, Search, Settings2, Upload } from 'lucide-react'
 import type { Bookmark, Category } from '@/lib/types'
+import { BASE_PATH } from '@/lib/base-path'
 import { BookmarkRow } from '@/components/BookmarkRow'
 import { BookmarkDialog } from '@/components/BookmarkDialog'
 import { UploadDialog } from '@/components/UploadDialog'
@@ -36,8 +37,8 @@ export default function Home() {
     if (debouncedQ) params.set('q', debouncedQ)
     if (category) params.set('category', category)
     const [bmRes, catRes] = await Promise.all([
-      fetch(`/api/bookmarks?${params.toString()}`),
-      fetch('/api/categories'),
+      fetch(`${BASE_PATH}/api/bookmarks?${params.toString()}`),
+      fetch(`${BASE_PATH}/api/categories`),
     ])
     setBookmarks((await bmRes.json()).bookmarks ?? [])
     setCategories((await catRes.json()).categories ?? [])
@@ -187,7 +188,7 @@ export default function Home() {
         onClose={() => setDeleting(null)}
         onConfirm={async () => {
           if (!deleting) return
-          await fetch(`/api/bookmarks/${deleting.id}`, { method: 'DELETE' })
+          await fetch(`${BASE_PATH}/api/bookmarks/${deleting.id}`, { method: 'DELETE' })
           setDeleting(null)
           refresh()
         }}
