@@ -26,6 +26,9 @@ RUN groupadd -r app && useradd -r -g app app
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+# Next standalone 用 HOSTNAME 作监听地址，而 Docker 会把它设为容器 ID：
+# 必须显式绑 0.0.0.0，否则容器内 localhost 连不上（healthcheck 失败）
+ENV NODE_ENV=production DATA_DIR=/data PORT=3000 HOSTNAME=0.0.0.0
 # standalone 追踪会带回 prebuilds 且漏掉编译产物：删掉预编译、显式拷入源码编译的二进制
 RUN rm -rf node_modules/better-sqlite3/prebuilds \
   && mkdir -p node_modules/better-sqlite3/build/Release /data \

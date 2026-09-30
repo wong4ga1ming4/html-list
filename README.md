@@ -10,6 +10,14 @@ docker compose up -d
 
 打开 `http://localhost:3000` 即可使用。
 
+> **Linux 首次部署注意**：容器以非 root 用户（uid 999）运行，而 Linux 上首次 `up -d` 会由 root 创建 `./data` 挂载目录，导致容器内无法写入（所有保存操作 500）。首次启动前先修好目录归属：
+>
+> ```bash
+> mkdir -p data && sudo chown -R 999:999 data
+> ```
+>
+> Docker Desktop（macOS/Windows）的文件共享层会自动处理权限，无需此步。
+
 - **+ 添加链接**：收藏一个外部页面（标题 + URL + 描述 + 分类）
 - **⬆ 上传 HTML**：上传自包含 `.html` 文件，自动提取 `<title>` 作为标题，托管在 `/p/{短链}`，点击卡片新标签页打开
 - **⚙**：管理分类（增删改、调序）

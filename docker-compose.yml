@@ -10,7 +10,8 @@ services:
       - MAX_UPLOAD_MB=20
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      # bookworm-slim 没有 wget；node 22 自带 fetch，零新增依赖
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3
