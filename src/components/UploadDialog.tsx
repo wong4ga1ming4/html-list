@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { FileUp } from 'lucide-react'
 import type { Category } from '@/lib/types'
 import { extractTitle } from '@/lib/title'
 import { Dialog } from './Dialog'
+import { Button } from './ui/Button'
+import { Input, Label, Select } from './ui/Field'
 
 interface UploadDialogProps {
   open: boolean
@@ -11,9 +14,6 @@ interface UploadDialogProps {
   onClose: () => void
   onSaved: () => void
 }
-
-const inputClass =
-  'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
 
 export function UploadDialog({ open, categories, onClose, onSaved }: UploadDialogProps) {
   const [file, setFile] = useState<File | null>(null)
@@ -65,66 +65,54 @@ export function UploadDialog({ open, categories, onClose, onSaved }: UploadDialo
 
   return (
     <Dialog open={open} title="上传 HTML" onClose={onClose}>
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="block">
+          <Label>文件 *（自包含 .html）</Label>
+          <label className="flex h-20 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-zinc-300 text-sm text-zinc-500 transition-colors hover:border-zinc-400 hover:text-zinc-700">
+            <FileUp size={15} />
+            {file ? (
+              <span className="max-w-[240px] truncate font-mono text-[13px] text-zinc-900">
+                {file.name}
+              </span>
+            ) : (
+              '点击选择文件'
+            )}
+            <input required type="file" accept=".html" onChange={handleFileChange} className="sr-only" />
+          </label>
+        </div>
         <label className="block">
-          <span className="mb-1 block text-sm text-gray-600">文件 *（自包含 .html）</span>
-          <input
-            required
-            type="file"
-            accept=".html"
-            onChange={handleFileChange}
-            className="w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm hover:file:bg-gray-200"
-          />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-sm text-gray-600">标题</span>
-          <input
+          <Label>标题</Label>
+          <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className={inputClass}
             placeholder="选文件后自动提取，可修改"
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm text-gray-600">描述</span>
-          <input
+          <Label>描述</Label>
+          <Input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className={inputClass}
             placeholder="可选"
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm text-gray-600">分类</span>
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className={inputClass}
-          >
+          <Label>分类</Label>
+          <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
             <option value="">未分类</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-[13px] text-red-600">{error}</p>}
         <div className="flex justify-end gap-2 pt-1">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
-          >
-            取消
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-black disabled:opacity-50"
-          >
+          <Button onClick={onClose}>取消</Button>
+          <Button variant="primary" type="submit" disabled={saving}>
             {saving ? '上传中…' : '上传'}
-          </button>
+          </Button>
         </div>
       </form>
     </Dialog>

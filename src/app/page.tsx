@@ -1,12 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Plus, Search, Settings2, Upload } from 'lucide-react'
 import type { Bookmark, Category } from '@/lib/types'
 import { BookmarkRow } from '@/components/BookmarkRow'
 import { BookmarkDialog } from '@/components/BookmarkDialog'
 import { UploadDialog } from '@/components/UploadDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { CategoryManager } from '@/components/CategoryManager'
+import { Button } from '@/components/ui/Button'
 
 type CategoryWithCount = Category & { count: number }
 
@@ -51,75 +53,79 @@ export default function Home() {
     return map
   }, [categories])
 
-  const chips: Array<{ key: string; label: string }> = [
+  const chips: Array<{ key: string; label: string; count?: number }> = [
     { key: '', label: '全部' },
     { key: 'uncategorized', label: '未分类' },
-    ...categories.map((c) => ({ key: String(c.id), label: c.name })),
+    ...categories.map((c) => ({ key: String(c.id), label: c.name, count: c.count })),
   ]
 
   const hasFilter = debouncedQ !== '' || category !== ''
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
-      <header className="mb-6 flex flex-wrap items-center gap-3">
-        <h1 className="text-xl font-bold">📚 HTML List</h1>
-        <input
-          type="search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="搜索标题、描述或 URL…"
-          className="min-w-40 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-        />
-        <button
-          type="button"
-          onClick={() => setLinkDialogOpen(true)}
-          className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + 添加链接
-        </button>
-        <button
-          type="button"
-          onClick={() => setUploadDialogOpen(true)}
-          className="rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-black"
-        >
-          ⬆ 上传 HTML
-        </button>
-        <button
-          type="button"
-          onClick={() => setCatManagerOpen(true)}
-          aria-label="分类管理"
-          title="分类管理"
-          className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm hover:border-blue-300"
-        >
-          ⚙
-        </button>
+    <main className="mx-auto max-w-3xl px-6 py-12">
+      <header className="mb-8 flex items-baseline justify-between">
+        <h1 className="text-lg font-semibold tracking-tight text-zinc-950">HTML List</h1>
+        <p className="text-xs text-zinc-400">{bookmarks.length} 条书签</p>
       </header>
 
-      <nav className="mb-4 flex flex-wrap gap-2" aria-label="分类筛选">
-        {chips.map((chip) => (
-          <button
-            key={chip.key || 'all'}
-            type="button"
-            onClick={() => setCategory(chip.key)}
-            className={`rounded-full px-3 py-1 text-sm transition-colors ${
-              category === chip.key
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
-            }`}
-          >
-            {chip.label}
-          </button>
-        ))}
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <div className="relative min-w-44 flex-1">
+          <Search
+            size={14}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
+          />
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="搜索标题、描述或 URL…"
+            className="h-9 w-full rounded-md border border-zinc-200 bg-white pl-9 pr-3 text-sm text-zinc-950 outline-none transition-shadow placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/5"
+          />
+        </div>
+        <Button variant="primary" onClick={() => setLinkDialogOpen(true)}>
+          <Plus size={14} /> 添加链接
+        </Button>
+        <Button onClick={() => setUploadDialogOpen(true)}>
+          <Upload size={14} /> 上传 HTML
+        </Button>
+        <Button size="icon" aria-label="分类管理" title="分类管理" onClick={() => setCatManagerOpen(true)}>
+          <Settings2 size={15} />
+        </Button>
+      </div>
+
+      <nav className="mb-5 flex flex-wrap items-center gap-1" aria-label="分类筛选">
+        {chips.map((chip) => {
+          const active = category === chip.key
+          return (
+            <button
+              key={chip.key || 'all'}
+              type="button"
+              onClick={() => setCategory(chip.key)}
+              className={`rounded-full px-2.5 py-1 text-[13px] transition-colors ${
+                active
+                  ? 'bg-zinc-950 font-medium text-white'
+                  : 'text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900'
+              }`}
+            >
+              {chip.label}
+              {chip.count !== undefined && (
+                <span className={`ml-1.5 text-xs ${active ? 'text-white/50' : 'text-zinc-400'}`}>
+                  {chip.count}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </nav>
 
       {bookmarks.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center text-gray-500">
+        <div className="rounded-xl border border-dashed border-zinc-300 bg-white px-6 py-20 text-center text-sm text-zinc-500">
           {hasFilter ? (
             <p>
               没有匹配的书签，试试
               <button
                 type="button"
-                className="mx-1 text-blue-600 underline"
+                className="mx-1 text-zinc-950 underline underline-offset-4"
                 onClick={() => {
                   setQ('')
                   setCategory('')
@@ -129,11 +135,11 @@ export default function Home() {
               </button>
             </p>
           ) : (
-            <p>还没有书签，点击右上角「+ 添加链接」或「⬆ 上传 HTML」开始收藏</p>
+            <p>还没有书签，点击「添加链接」或「上传 HTML」开始收藏</p>
           )}
         </div>
       ) : (
-        <ul className="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
+        <ul className="divide-y divide-zinc-100 rounded-xl border border-zinc-200 bg-white">
           {bookmarks.map((b) => (
             <li key={b.id}>
               <BookmarkRow

@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react'
 import type { Category } from '@/lib/types'
 import { Dialog } from './Dialog'
 import { ConfirmDialog } from './ConfirmDialog'
+import { Button } from './ui/Button'
+import { Input } from './ui/Field'
 
 interface CategoryManagerProps {
   open: boolean
@@ -11,9 +14,6 @@ interface CategoryManagerProps {
   onClose: () => void
   onChanged: () => void
 }
-
-const inputClass =
-  'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
 
 async function patchCategory(id: number, body: Record<string, unknown>) {
   const res = await fetch(`/api/categories/${id}`, {
@@ -23,6 +23,9 @@ async function patchCategory(id: number, body: Record<string, unknown>) {
   })
   return res.ok
 }
+
+const rowAction =
+  'rounded-md p-1 text-zinc-400 outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-700 disabled:pointer-events-none disabled:opacity-25'
 
 export function CategoryManager({ open, categories, onClose, onChanged }: CategoryManagerProps) {
   const [newName, setNewName] = useState('')
@@ -79,13 +82,16 @@ export function CategoryManager({ open, categories, onClose, onChanged }: Catego
   return (
     <>
       <Dialog open={open} title="分类管理" onClose={onClose}>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {categories.length === 0 && (
-            <p className="text-sm text-gray-500">还没有分类，在下方输入名称添加。</p>
+            <p className="text-sm text-zinc-500">还没有分类，在下方输入名称添加。</p>
           )}
-          <ul className="max-h-72 space-y-1 overflow-y-auto">
+          <ul className="max-h-72 space-y-0.5 overflow-y-auto">
             {categories.map((c, i) => (
-              <li key={c.id} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-50">
+              <li
+                key={c.id}
+                className="group flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-zinc-50"
+              >
                 {renamingId === c.id ? (
                   <>
                     <input
@@ -96,68 +102,68 @@ export function CategoryManager({ open, categories, onClose, onChanged }: Catego
                         if (e.key === 'Enter') handleRenameSubmit(c.id)
                         if (e.key === 'Escape') setRenamingId(null)
                       }}
-                      className="flex-1 rounded border border-blue-300 px-2 py-1 text-sm outline-none"
+                      className="h-7 flex-1 rounded border border-zinc-400 px-2 text-sm text-zinc-950 outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => handleRenameSubmit(c.id)}
-                      className="text-sm text-blue-600 hover:underline"
+                      className="px-1 text-[13px] font-medium text-zinc-950 hover:underline"
                     >
                       确定
                     </button>
                     <button
                       type="button"
                       onClick={() => setRenamingId(null)}
-                      className="text-sm text-gray-400 hover:underline"
+                      className="px-1 text-[13px] text-zinc-400 hover:text-zinc-700"
                     >
                       取消
                     </button>
                   </>
                 ) : (
                   <>
-                    <span className="flex-1 truncate text-sm text-gray-800">{c.name}</span>
-                    <span className="text-xs text-gray-400">{c.count} 条书签</span>
-                    <div className="flex gap-0.5 text-gray-400">
+                    <span className="flex-1 truncate text-sm text-zinc-800">{c.name}</span>
+                    <span className="text-xs tabular-nums text-zinc-400">{c.count} 条书签</span>
+                    <div className="flex gap-0.5">
                       <button
                         type="button"
                         aria-label={`上移 ${c.name}`}
                         title="上移"
                         disabled={i === 0}
-                        className="rounded px-1 hover:bg-gray-200 disabled:opacity-30"
+                        className={rowAction}
                         onClick={() => handleMove(i, -1)}
                       >
-                        ↑
+                        <ChevronUp size={14} />
                       </button>
                       <button
                         type="button"
                         aria-label={`下移 ${c.name}`}
                         title="下移"
                         disabled={i === categories.length - 1}
-                        className="rounded px-1 hover:bg-gray-200 disabled:opacity-30"
+                        className={rowAction}
                         onClick={() => handleMove(i, 1)}
                       >
-                        ↓
+                        <ChevronDown size={14} />
                       </button>
                       <button
                         type="button"
                         aria-label={`改名 ${c.name}`}
                         title="改名"
-                        className="rounded px-1 hover:bg-gray-200"
+                        className={rowAction}
                         onClick={() => {
                           setRenamingId(c.id)
                           setRenamingName(c.name)
                         }}
                       >
-                        ✏️
+                        <Pencil size={14} />
                       </button>
                       <button
                         type="button"
                         aria-label={`删除 ${c.name}`}
                         title="删除"
-                        className="rounded px-1 hover:bg-red-100 hover:text-red-600"
+                        className="rounded-md p-1 text-zinc-400 outline-none transition-colors hover:bg-red-50 hover:text-red-600"
                         onClick={() => setDeleting(c)}
                       >
-                        🗑
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </>
@@ -166,21 +172,17 @@ export function CategoryManager({ open, categories, onClose, onChanged }: Catego
             ))}
           </ul>
 
-          <form onSubmit={handleAdd} className="flex gap-2 border-t border-gray-100 pt-3">
-            <input
+          <form onSubmit={handleAdd} className="flex gap-2 border-t border-zinc-100 pt-4">
+            <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="新分类名称"
-              className={inputClass}
             />
-            <button
-              type="submit"
-              className="shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
-            >
+            <Button variant="primary" type="submit" className="shrink-0">
               添加
-            </button>
+            </Button>
           </form>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-[13px] text-red-600">{error}</p>}
         </div>
       </Dialog>
 

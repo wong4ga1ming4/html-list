@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import type { Bookmark, Category } from '@/lib/types'
 import { Dialog } from './Dialog'
+import { Button } from './ui/Button'
+import { Input, Label, Select } from './ui/Field'
 
 interface BookmarkDialogProps {
   open: boolean
@@ -12,9 +14,6 @@ interface BookmarkDialogProps {
   onClose: () => void
   onSaved: () => void
 }
-
-const inputClass =
-  'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
 
 export function BookmarkDialog({
   open,
@@ -74,70 +73,54 @@ export function BookmarkDialog({
 
   return (
     <Dialog open={open} title={isEdit ? '编辑书签' : '添加链接'} onClose={onClose}>
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block">
-          <span className="mb-1 block text-sm text-gray-600">标题 *</span>
-          <input
+          <Label>标题 *</Label>
+          <Input
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className={inputClass}
             placeholder="书签标题"
           />
         </label>
         {showUrl && (
           <label className="block">
-            <span className="mb-1 block text-sm text-gray-600">URL *</span>
-            <input
+            <Label>URL *</Label>
+            <Input
               required
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className={inputClass}
               placeholder="https://example.com/page.html"
+              className="font-mono text-[13px]"
             />
           </label>
         )}
         <label className="block">
-          <span className="mb-1 block text-sm text-gray-600">描述</span>
-          <input
+          <Label>描述</Label>
+          <Input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className={inputClass}
             placeholder="可选"
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm text-gray-600">分类</span>
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className={inputClass}
-          >
+          <Label>分类</Label>
+          <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
             <option value="">未分类</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-[13px] text-red-600">{error}</p>}
         <div className="flex justify-end gap-2 pt-1">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
-          >
-            取消
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-          >
+          <Button onClick={onClose}>取消</Button>
+          <Button variant="primary" type="submit" disabled={saving}>
             {saving ? '保存中…' : '保存'}
-          </button>
+          </Button>
         </div>
       </form>
     </Dialog>
